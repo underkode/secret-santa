@@ -8,7 +8,7 @@ import (
 	"underkode.ru/secret-santa/utils"
 )
 
-var OnCreate = SaveLastActionDecorate(func(app application.ApplicationContext) func(message *tb.Message) {
+var OnCreate = SaveLastActionDecorate(func(app *application.ApplicationContext) func(message *tb.Message) {
 	return func(message *tb.Message) {
 		user := app.UserStore.FindByExternalId(utils.ToString(message.Sender.ID))
 

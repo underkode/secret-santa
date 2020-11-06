@@ -8,10 +8,10 @@ import (
 	"underkode.ru/secret-santa/utils"
 )
 
-type Action func(app application.ApplicationContext) func(message *tb.Message)
+type Action func(app *application.ApplicationContext) func(message *tb.Message)
 
 func SaveLastActionDecorate(next Action) Action {
-	return func(app application.ApplicationContext) func(message *tb.Message) {
+	return func(app *application.ApplicationContext) func(message *tb.Message) {
 		return func(message *tb.Message) {
 			user, _ := app.UserStore.Put(store.PutUser{
 				ExternalId: utils.ToString(message.Sender.ID),

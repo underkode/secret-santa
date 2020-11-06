@@ -11,20 +11,14 @@ import (
 	"underkode.ru/secret-santa/utils"
 )
 
-func newUserStore(workDirectory string) *store.UserStore {
-	return utils.CheckAndReturn(store.NewUserStore(workDirectory + ".users")).(*store.UserStore)
-}
-
-func newRoundStore(workDirectory string) *store.RoundStore {
-	return utils.CheckAndReturn(store.NewRoundStore(workDirectory + ".rounds")).(*store.RoundStore)
-}
-
-func newLastActionStore(workDirectory string) *store.LastActionStore {
-	return utils.CheckAndReturn(store.NewLastActionStore(workDirectory + ".lastactions")).(*store.LastActionStore)
-}
-
-func newRoundParticipantStore(workDirectory string) *store.RoundParticipantStore {
-	return utils.CheckAndReturn(store.NewRoundParticipantStore(workDirectory + ".roundparticipants")).(*store.RoundParticipantStore)
+func NewStore(
+	workDirectory *string) func(
+	filename string,
+	instanceFunction func(filename string) (interface{}, error),
+) interface{} {
+	return func(filename string, instanceFunction func(filename string) (interface{}, error)) interface{} {
+		return utils.CheckAndReturn(instanceFunction(*workDirectory + filename))
+	}
 }
 
 func newBot(tgToken string) *tb.Bot {
@@ -40,21 +34,24 @@ func main() {
 	tgToken := pflag.StringP("tg-token", "t", "", "telegram bot token")
 	pflag.Parse()
 
-	app := application.ApplicationContext{
-		WorkDirectory:         *workDirectory,
-		UserStore:             newUserStore(*workDirectory),
-		RoundStore:            newRoundStore(*workDirectory),
-		LastActionStore:       newLastActionStore(*workDirectory),
-		RoundParticipantStore: newRoundParticipantStore(*workDirectory),
-		Bot:                   newBot(*tgToken),
+	newStore := NewStore(workDirectory)
+
+	app := &application.ApplicationContext{
+		*workDirectory,
+		newStore(".users", func(filename string) (interface{}, error) { return store.NewUserStore(filename) }).(*store.UserStore),
+		newStore(".rounds", func(filename string) (interface{}, error) { return store.NewRoundStore(filename) }).(*store.RoundStore),
+		newStore(".lastactions", func(filename string) (interface{}, error) { return store.NewLastActionStore(filename) }).(*store.LastActionStore),
+		newStore(".roundparticipants", func(filename string) (interface{}, error) { return store.NewRoundParticipantStore(filename) }).(*store.RoundParticipantStore),
+		newStore(".roundplayouts", func(filename string) (interface{}, error) { return store.NewRoundPlayOutStore(filename) }).(*store.RoundPlayOutStore),
+		newBot(*tgToken),
 	}
 
 	log.Printf("Authorized on account %s", app.Bot.Me.Username)
 
-	app.Bot.Handle(actions.Start, actions.OnStart(app))
-	app.Bot.Handle(actions.Create, actions.OnCreate(app))
-	app.Bot.Handle(actions.Join, actions.OnJoin(app))
-	app.Bot.Handle(actions.PlayOut, actions.OnPlayOut(app))
+	app.Bot.Handle(actions.START, actions.OnStart(app))
+	app.Bot.Handle(actions.CREATE, actions.OnCreate(app))
+	app.Bot.Handle(actions.JOIN, actions.OnJoin(app))
+	app.Bot.Handle(actions.PLAY_OUT, actions.OnPlayOut(app))
 	app.Bot.Handle(tb.OnText, actions.OnText(app))
 
 	app.Bot.Start()

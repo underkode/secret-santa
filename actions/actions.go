@@ -1,8 +1,8 @@
 package actions
 
 const (
-	Start   string = "/start"
-	Create  string = "/create"
-	Join    string = "/join"
-	PlayOut string = "/playout"
+	START    string = "/start"
+	CREATE   string = "/create"
+	JOIN     string = "/join"
+	PLAY_OUT string = "/playout"
 )

@@ -11,5 +11,6 @@ type ApplicationContext struct {
 	RoundStore            *store.RoundStore
 	LastActionStore       *store.LastActionStore
 	RoundParticipantStore *store.RoundParticipantStore
+	RoundPlayOutStore     *store.RoundPlayOutStore
 	Bot                   *tb.Bot
 }

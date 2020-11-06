@@ -9,7 +9,7 @@ import (
 	"underkode.ru/secret-santa/utils"
 )
 
-var OnStart = SaveLastActionDecorate(func(app application.ApplicationContext) func(message *tb.Message) {
+var OnStart = SaveLastActionDecorate(func(app *application.ApplicationContext) func(message *tb.Message) {
 	return func(message *tb.Message) {
 		externalId := utils.ToString(message.Sender.ID)
 
